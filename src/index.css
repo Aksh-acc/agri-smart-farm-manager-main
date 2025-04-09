@@ -1,0 +1,751 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 140 30% 98%;
+    --foreground: 120 10% 8%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 120 10% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 120 10% 8%;
+
+    --primary: 122 40% 42%;
+    --primary-foreground: 140 30% 98%;
+
+    --secondary: 16 25% 38%;
+    --secondary-foreground: 140 30% 98%;
+
+    --muted: 120 5% 92%;
+    --muted-foreground: 120 3% 45%;
+
+    --accent: 120 3% 90%;
+    --accent-foreground: 120 10% 8%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 140 30% 98%;
+
+    --border: 120 5% 88%;
+    --input: 120 5% 88%;
+    --ring: 122 40% 42%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Additional token values for new UI components */
+    --accent-blue: 210 100% 50%;
+    --accent-green: 142 69% 58%;
+    --accent-gold: 43 96% 56%;
+  }
+
+  .dark {
+    --background: 120 15% 8%;
+    --foreground: 140 30% 98%;
+
+    --card: 120 10% 12%;
+    --card-foreground: 140 30% 98%;
+
+    --popover: 120 10% 12%;
+    --popover-foreground: 140 30% 98%;
+
+    --primary: 122 40% 42%;
+    --primary-foreground: 140 30% 98%;
+
+    --secondary: 16 25% 38%;
+    --secondary-foreground: 140 30% 98%;
+
+    --muted: 120 3% 20%;
+    --muted-foreground: 120 5% 65%;
+
+    --accent: 120 3% 20%;
+    --accent-foreground: 140 30% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 140 30% 98%;
+
+    --border: 120 5% 18%;
+    --input: 120 5% 18%;
+    --ring: 122 40% 42%;
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    background-image: var(--background-pattern);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-3xl sm:text-4xl lg:text-5xl;
+  }
+
+  h2 {
+    @apply text-2xl sm:text-3xl lg:text-4xl;
+  }
+
+  h3 {
+    @apply text-xl sm:text-2xl lg:text-3xl;
+  }
+
+  h4 {
+    @apply text-lg sm:text-xl;
+  }
+  
+  .pattern-bg {
+    background-color: hsl(var(--background));
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  
+  /* Enhanced backgrounds */
+  .pattern-bg-leaves {
+    background-color: hsl(var(--background));
+    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234caf50' fill-opacity='0.07'%3E%3Cpath d='M50 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10s-10-4.477-10-10 4.477-10 10-10zM10 10c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10S0 25.523 0 20s4.477-10 10-10zm10 8c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm40 40c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .pattern-bg-crops {
+    background-color: hsl(var(--background));
+    background-image: url("data:image/svg+xml,%3Csvg width='84' height='48' viewBox='0 0 84 48' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h12v6H0V0zm28 8h12v6H28V8zm14-8h12v6H42V0zm14 0h12v6H56V0zm0 8h12v6H56V8zM42 8h12v6H42V8zm0 16h12v6H42v-6zm14-8h12v6H56v-6zm14 0h12v6H70v-6zm0-16h12v6H70V0zM28 32h12v6H28v-6zM14 16h12v6H14v-6zM0 24h12v6H0v-6zm0 8h12v6H0v-6zm14 0h12v6H14v-6zm14 8h12v6H28v-6zm-14 0h12v6H14v-6zm28 0h12v6H42v-6zm14-8h12v6H56v-6zm0-8h12v6H56v-6zm14 8h12v6H70v-6zm0 8h12v6H70v-6zM14 24h12v6H14v-6zm14-8h12v6H28v-6zM14 8h12v6H14V8zM0 8h12v6H0V8z' fill='%23388e3c' fill-opacity='0.04' fill-rule='evenodd'/%3E%3C/svg%3E");
+  }
+
+  .pattern-bg-soil {
+    background-color: hsl(var(--background));
+    background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23795548' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  
+  /* Enhanced landscape background with realistic farm elements */
+  .pattern-bg-landscape {
+    background-color: hsl(var(--background));
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .pattern-bg-landscape::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%234caf50' fill-opacity='0.1' d='M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,218.7C672,235,768,245,864,240C960,235,1056,213,1152,202.7C1248,192,1344,192,1392,192L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+    z-index: 0;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 dark:bg-card/80 backdrop-blur-sm border border-border rounded-lg shadow-md;
+  }
+  
+  /* Enhanced glass card with subtle inner glow */
+  .glass-card-glow {
+    @apply bg-white/80 dark:bg-card/80 backdrop-blur-sm border border-border rounded-lg;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  }
+
+  /* Gradient card with glass effect */
+  .gradient-card {
+    @apply rounded-lg backdrop-blur-sm;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  }
+
+  .input-field {
+    @apply px-3 py-2 rounded-md border border-input bg-background ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2;
+  }
+  
+  /* Enhanced animations */
+  .animate-subtle-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .animate-rapid-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-slow-float {
+    animation: float 10s ease-in-out infinite;
+  }
+  
+  .animate-leaf-sway {
+    animation: leaf-sway 5s ease-in-out infinite;
+  }
+  
+  .animate-grow {
+    animation: grow 4s ease-in-out infinite;
+  }
+  
+  .animate-fade-pulse {
+    animation: fade-pulse 6s ease-in-out infinite;
+  }
+  
+  .animate-rotate-slow {
+    animation: rotate-slow 15s linear infinite;
+  }
+  
+  .animate-shimmer {
+    position: relative;
+    overflow: hidden;
+    background-size: 200% auto;
+    animation: shimmer 3s linear infinite;
+  }
+  
+  .animate-shimmer-vertical {
+    position: relative;
+    overflow: hidden;
+    background-size: auto 200%;
+    animation: shimmer-vertical 3s linear infinite;
+  }
+  
+  /* New Animations for enhanced UI */
+  .animate-wave {
+    animation: wave 2s ease-in-out infinite;
+  }
+  
+  .animate-wave-vertical {
+    animation: wave-vertical 2s ease-in-out infinite;
+  }
+  
+  .animate-3d-rotate {
+    animation: rotate-3d 8s infinite ease-in-out;
+    transform-style: preserve-3d;
+  }
+  
+  /* Soil scatter animation */
+  .soil-scatter {
+    position: relative;
+  }
+  
+  .soil-scatter::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(121,85,72,0.2) 0%, rgba(121,85,72,0) 70%);
+  }
+  
+  /* Data visualization animation */
+  .data-pulse {
+    position: relative;
+  }
+  
+  .data-pulse::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(76,175,80,0.3) 0%, rgba(76,175,80,0) 70%);
+    animation: data-pulse 3s infinite ease-in-out;
+  }
+  
+  /* Specialized Animations */
+  .text-reveal {
+    display: inline-block;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .text-reveal span {
+    display: inline-block;
+    transform: translateY(100%);
+    animation: text-reveal 0.8s forwards;
+  }
+  
+  /* Staggered reveal for multiple elements */
+  .stagger-reveal > * {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  
+  .stagger-reveal.visible > * {
+    animation: stagger-fade-in 0.5s forwards;
+  }
+  
+  .stagger-reveal.visible > *:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+  
+  .stagger-reveal.visible > *:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+  
+  .stagger-reveal.visible > *:nth-child(4) {
+    animation-delay: 0.3s;
+  }
+  
+  .stagger-reveal.visible > *:nth-child(5) {
+    animation-delay: 0.4s;
+  }
+  
+  /* Specialized glass-morphism effects */
+  .glass-morphism {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .glass-morphism-dark {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Enhanced keyframe animations */
+@keyframes float {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes pulse-subtle {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes shimmer-vertical {
+  0% {
+    background-position: 50% 0%;
+  }
+  100% {
+    background-position: 50% 200%;
+  }
+}
+
+@keyframes leaf-sway {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(5deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(-5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes grow {
+  0% {
+    transform: scale(0.95);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(0.95);
+  }
+}
+
+@keyframes fade-pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes rotate-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* NEW ANIMATIONS */
+@keyframes wave {
+  0%, 100% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes wave-vertical {
+  0%, 100% {
+    transform: translateY(-100%);
+  }
+  50% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes data-pulse {
+  0%, 100% {
+    transform: scale(0.8);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+@keyframes text-reveal {
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes stagger-fade-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rotate-3d {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  }
+  25% {
+    transform: rotateX(10deg) rotateY(20deg) rotateZ(0deg);
+  }
+  50% {
+    transform: rotateX(0deg) rotateY(40deg) rotateZ(5deg);
+  }
+  75% {
+    transform: rotateX(-10deg) rotateY(20deg) rotateZ(0deg);
+  }
+  100% {
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  }
+}
+
+/* Cloud animation */
+.cloud-float {
+  animation: cloud-move 15s ease-in-out infinite;
+}
+
+@keyframes cloud-move {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(30px) translateY(-5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* Raindrop animation */
+.rain-drop {
+  animation: rain-fall 2s linear infinite;
+}
+
+@keyframes rain-fall {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+}
+
+/* Sun rays animation */
+.sun-rays {
+  position: relative;
+}
+
+.sun-rays::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, rgba(255,193,7,0.4) 0%, rgba(255,193,7,0) 70%);
+  animation: sun-glow 3s infinite ease-in-out;
+}
+
+@keyframes sun-glow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+/* Growing plant animation */
+.plant-grow {
+  animation: grow-up 10s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+@keyframes grow-up {
+  0% {
+    transform: scaleY(0.9) translateY(2px);
+  }
+  50% {
+    transform: scaleY(1.05) translateY(-2px);
+  }
+  100% {
+    transform: scaleY(0.9) translateY(2px);
+  }
+}
+
+/* 3D Loader */
+.loader-3d {
+  perspective: 800px;
+  position: relative;
+}
+
+.loader-3d-cube {
+  width: 40px;
+  height: 40px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(0deg) rotateY(0deg);
+  animation: cube-spin 4s infinite linear;
+}
+
+.loader-3d-face {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(76, 175, 80, 0.3);
+  border: 1px solid rgba(76, 175, 80, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader-3d-front  { transform: translateZ(20px); }
+.loader-3d-back   { transform: rotateY(180deg) translateZ(20px); }
+.loader-3d-right  { transform: rotateY(90deg) translateZ(20px); }
+.loader-3d-left   { transform: rotateY(-90deg) translateZ(20px); }
+.loader-3d-top    { transform: rotateX(90deg) translateZ(20px); }
+.loader-3d-bottom { transform: rotateX(-90deg) translateZ(20px); }
+
+@keyframes cube-spin {
+  0% { transform: rotateX(0deg) rotateY(0deg); }
+  100% { transform: rotateX(360deg) rotateY(360deg); }
+}
+
+/* Soil Scanner Animation */
+.soil-scanner {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.soil-scanner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: rgba(76, 175, 80, 0.7);
+  animation: scan-line 2s infinite ease-in-out;
+}
+
+@keyframes scan-line {
+  0%, 100% { top: 0; }
+  50% { top: calc(100% - 2px); }
+}
+
+/* Plant Growth Prediction Animation */
+.growth-prediction {
+  position: relative;
+  height: 100px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 10px;
+}
+
+.growth-stage {
+  width: 4px;
+  background-color: #4CAF50;
+  margin: 0 2px;
+  border-radius: 2px 2px 0 0;
+  animation: grow-from-bottom 3s infinite ease-out;
+  opacity: 0;
+}
+
+.growth-stage:nth-child(2) { animation-delay: 0.3s; height: 35%; }
+.growth-stage:nth-child(3) { animation-delay: 0.6s; height: 55%; }
+.growth-stage:nth-child(4) { animation-delay: 0.9s; height: 70%; }
+.growth-stage:nth-child(5) { animation-delay: 1.2s; height: 90%; }
+.growth-stage:nth-child(6) { animation-delay: 1.5s; height: 100%; }
+
+@keyframes grow-from-bottom {
+  0% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+  20% { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
+  80% { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
+  100% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+}
+
+/* Weather Widget Animation */
+.weather-icon {
+  position: relative;
+}
+
+.weather-sun {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  background: #FFD700;
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+  animation: weather-pulse 3s infinite ease-in-out;
+}
+
+.weather-sun::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 215, 0, 0.5);
+  animation: sun-halo 4s infinite linear;
+}
+
+@keyframes weather-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes sun-halo {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mobile Pull to Refresh Animation */
+.pull-refresh-indicator {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pull-refresh-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid transparent;
+  border-top-color: #4CAF50;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: spin 1s infinite linear;
+}
+
+.pull-refresh-active .pull-refresh-spinner {
+  opacity: 1;
+}
+
+/* Footer Brand Animation */
+.footer-brand {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.footer-brand::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  bottom: -2px;
+  left: 0;
+  background: linear-gradient(to right, transparent, rgba(76, 175, 80, 0.7), transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s ease;
+}
+
+.footer-brand:hover::after {
+  transform: scaleX(1);
+}
