@@ -1,316 +1,188 @@
+import React, { useState } from "react";
+import axios from "axios";
 
-import { useState } from 'react';
-import PageLayout from '@/components/layout/PageLayout';
-import HeroSection from '@/components/ui/hero-section';
-import SectionHeader from '@/components/ui/section-header';
-import BarChart from '@/components/ui/bar-chart';
-import DataCard from '@/components/ui/data-card';
-import { Button } from '@/components/ui/button';
-import { Droplet, Sun, ThermometerSun, Sprout } from 'lucide-react';
-import { toast } from 'sonner';
+interface CropRecommendation {
+  name: string;
+  confidence: number;
+}
 
-const CropRecommendation = () => {
-  const [formData, setFormData] = useState({
-    latitude: '',
-    longitude: '',
-    nitrogen: '',
-    phosphorus: '',
-    potassium: '',
-    rainfall: '',
-    temperature: '',
-    humidity: '',
-  });
-  
-  const [showResults, setShowResults] = useState(false);
-  
-  // Simulated result - would be calculated by a ML model in a real app
-  const cropsScores = [
-    { name: "Rice", score: 85 },
-    { name: "Wheat", score: 70 },
-    { name: "Maize", score: 65 },
-    { name: "Sugarcane", score: 50 },
-    { name: "Cotton", score: 35 }
-  ];
-  
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+interface WeatherResponse {
+  main?: {
+    temp?: number;
+    humidity?: number;
   };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate inputs
-    const requiredFields = Object.entries(formData);
-    const emptyFields = requiredFields.filter(([_, value]) => value === '');
-    
-    if (emptyFields.length > 0) {
-      toast.error('Please fill in all fields');
-      return;
+  rain?: {
+    "1h"?: number;
+    "3h"?: number;
+  };
+}
+
+const CropRecommendation: React.FC = () => {
+  const [location, setLocation] = useState("");
+  const [N, setN] = useState("");
+  const [P, setP] = useState("");
+  const [K, setK] = useState("");
+  const [ph, setPh] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [recommendations, setRecommendations] = useState<CropRecommendation[]>([]);
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+
+    try {
+      // Fetch weather data
+      const weatherRes = await axios.get<WeatherResponse>(
+        "https://weather-api167.p.rapidapi.com/api/weather/current",
+        {
+          params: {
+            place: `${location},IN`,
+            units: "standard",
+            lang: "en",
+            mode: "json"
+          },
+          headers: {
+            "x-rapidapi-host": "weather-api167.p.rapidapi.com",
+            "x-rapidapi-key": "145a14219bmsh3bf2721a56f82edp17e541jsn973514e1d06f",
+            Accept: "application/json"
+          }
+        }
+      );
+
+      const { main, rain } = weatherRes.data;
+      const temperature = main?.temp ?? 25;
+      const humidity = main?.humidity ?? 50;
+      const rainfall = rain?.["1h"] ?? rain?.["3h"] ?? 50;
+
+      const input = {
+        N: Number(N) || 0,
+        P: Number(P) || 0,
+        K: Number(K) || 0,
+        ph: Number(ph) || 6.5,
+        temperature,
+        humidity,
+        rainfall
+      };
+
+      console.log("🌾 Sanitized Input:", input);
+
+      // Predict crops
+      const response = await axios.post<{ top_crops: CropRecommendation[] }>(
+        "http://localhost:8001/predict",
+        input
+      );
+
+      setRecommendations(response.data.top_crops || []);
+    } catch (error) {
+      console.error("❌ Prediction failed:", error);
+      alert("Prediction failed. Check your input or try again later.");
     }
-    
-    // Process form data - in a real app, this would call an API or ML model
-    setTimeout(() => {
-      setShowResults(true);
-      toast.success('Analysis completed');
-      
-      // Scroll to results
-      const resultsSection = document.getElementById('results');
-      if (resultsSection) {
-        resultsSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 1000);
+
+    setIsLoading(false);
   };
-  
-  const chartData = cropsScores.map(crop => ({
-    name: crop.name,
-    score: crop.score,
-  }));
+
+  const InputField = ({
+    label,
+    value,
+    onChange,
+    type = "number"
+  }: {
+    label: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    type?: string;
+  }) => (
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={label}
+      className="p-2 rounded bg-gray-800 text-white"
+    />
+  );
 
   return (
-    <PageLayout>
-      <HeroSection
-        title="Crop Recommendation"
-        subtitle="Get AI-powered recommendations for the best crops to plant based on your soil and climate conditions"
-        imageSrc="https://source.unsplash.com/photo-1518495973542-4542c06a5843"
-        imageAlt="Field of crops at sunrise"
-      />
-      
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <div className="glass-card p-6 md:p-8">
-            <SectionHeader 
-              title="Input Your Farm Details"
-              subtitle="Provide information about your location and soil characteristics"
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
+      {/* Header */}
+      <header className="bg-gray-950 shadow-md py-4 px-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-green-400">🌾 SmartAgri - Crop Recommender</h1>
+      </header>
+  
+      {/* Main Card */}
+      <main className="flex justify-center items-center py-10 px-4">
+        <div className="bg-gray-900 p-8 rounded-2xl shadow-2xl max-w-3xl w-full space-y-6">
+          <h2 className="text-2xl font-semibold text-center text-white mb-4">🧪 Enter Field Data</h2>
+  
+          {/* Location */}
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Location</label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g. Jaipur"
+              className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
-            
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Location Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Location</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="latitude" className="block text-sm font-medium mb-1">Latitude</label>
-                      <input
-                        type="number"
-                        id="latitude"
-                        name="latitude"
-                        value={formData.latitude}
-                        onChange={handleInputChange}
-                        placeholder="e.g. 28.6139"
-                        step="0.0001"
-                        className="input-field w-full"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="longitude" className="block text-sm font-medium mb-1">Longitude</label>
-                      <input
-                        type="number"
-                        id="longitude"
-                        name="longitude"
-                        value={formData.longitude}
-                        onChange={handleInputChange}
-                        placeholder="e.g. 77.2090"
-                        step="0.0001"
-                        className="input-field w-full"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="temperature" className="block text-sm font-medium mb-1">Temperature (°C)</label>
-                      <input
-                        type="number"
-                        id="temperature"
-                        name="temperature"
-                        value={formData.temperature}
-                        onChange={handleInputChange}
-                        placeholder="e.g. 24.5"
-                        step="0.1"
-                        className="input-field w-full"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="humidity" className="block text-sm font-medium mb-1">Humidity (%)</label>
-                      <input
-                        type="number"
-                        id="humidity"
-                        name="humidity"
-                        value={formData.humidity}
-                        onChange={handleInputChange}
-                        placeholder="e.g. 65"
-                        min="0"
-                        max="100"
-                        className="input-field w-full"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="rainfall" className="block text-sm font-medium mb-1">Annual Rainfall (mm)</label>
-                    <input
-                      type="number"
-                      id="rainfall"
-                      name="rainfall"
-                      value={formData.rainfall}
-                      onChange={handleInputChange}
-                      placeholder="e.g. 800"
-                      min="0"
-                      className="input-field w-full"
-                    />
-                  </div>
-                </div>
-                
-                {/* Soil Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Soil NPK Levels</h3>
-                  
-                  <div>
-                    <label htmlFor="nitrogen" className="block text-sm font-medium mb-1">Nitrogen (mg/kg)</label>
-                    <input
-                      type="number"
-                      id="nitrogen"
-                      name="nitrogen"
-                      value={formData.nitrogen}
-                      onChange={handleInputChange}
-                      placeholder="e.g. 40"
-                      min="0"
-                      className="input-field w-full"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="phosphorus" className="block text-sm font-medium mb-1">Phosphorus (mg/kg)</label>
-                    <input
-                      type="number"
-                      id="phosphorus"
-                      name="phosphorus"
-                      value={formData.phosphorus}
-                      onChange={handleInputChange}
-                      placeholder="e.g. 50"
-                      min="0"
-                      className="input-field w-full"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="potassium" className="block text-sm font-medium mb-1">Potassium (mg/kg)</label>
-                    <input
-                      type="number"
-                      id="potassium"
-                      name="potassium"
-                      value={formData.potassium}
-                      onChange={handleInputChange}
-                      placeholder="e.g. 60"
-                      min="0"
-                      className="input-field w-full"
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-center mt-8">
-                <Button type="submit" className="bg-primary-600 hover:bg-primary-700 px-8">
-                  Get Recommendations
-                </Button>
-              </div>
-            </form>
+            <p className="text-xs text-gray-500 mt-1">Used for fetching weather data automatically.</p>
           </div>
+  
+          {/* Inputs for NPK + pH */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[{ label: "Nitrogen (N)", state: N, setState: setN },
+              { label: "Phosphorus (P)", state: P, setState: setP },
+              { label: "Potassium (K)", state: K, setState: setK },
+              { label: "pH Level", state: ph, setState: setPh }
+            ].map(({ label, state, setState }) => (
+              <div key={label}>
+                <label className="block text-sm text-gray-400 mb-1">{label}</label>
+                <input
+                  type="number"
+                  value={state}
+                  onChange={(e) => setState(e.target.value)}
+                  placeholder={label}
+                  className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            ))}
+          </div>
+  
+          {/* Submit Button */}
+          <div className="flex justify-center">
+            <button
+              onClick={handleSubmit}
+              disabled={isLoading}
+              className="px-6 py-3 bg-green-600 hover:bg-green-700 transition-all duration-200 rounded-lg font-semibold text-white disabled:opacity-50"
+            >
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="4" fill="none" />
+                  </svg>
+                  Predicting...
+                </span>
+              ) : (
+                "Get Crop Recommendation"
+              )}
+            </button>
+          </div>
+  
+          {/* Results */}
+          {recommendations.length > 0 && (
+            <div className="bg-gray-800 p-6 rounded-xl shadow-inner">
+              <h3 className="text-lg font-semibold text-green-400 mb-3">🌱 Top Recommended Crops</h3>
+              <ul className="space-y-2">
+                {recommendations.map((crop, idx) => (
+                  <li key={idx} className="flex justify-between border-b border-gray-700 pb-2">
+                    <span className="capitalize font-medium">{crop.name}</span>
+                    <span className="text-green-400">{(crop.confidence * 100).toFixed(2)}%</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
-      </section>
-      
-      {showResults && (
-        <section id="results" className="py-16 bg-muted/50">
-          <div className="container mx-auto px-4">
-            <SectionHeader
-              title="Your Crop Recommendations"
-              subtitle="Based on your soil and climate data, here are the best crops to plant"
-              center
-            />
-            
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <DataCard
-                title="Best Recommended Crop"
-                value="Rice"
-                description="85% compatibility with your conditions"
-                icon={<Sprout className="h-6 w-6 text-primary-600" />}
-              />
-              <DataCard
-                title="Average Rainfall"
-                value={`${formData.rainfall} mm`}
-                icon={<Droplet className="h-6 w-6 text-accent-blue" />}
-              />
-              <DataCard
-                title="Temperature"
-                value={`${formData.temperature}°C`}
-                icon={<ThermometerSun className="h-6 w-6 text-accent-gold" />}
-              />
-              <DataCard
-                title="Humidity"
-                value={`${formData.humidity}%`}
-                icon={<Sun className="h-6 w-6 text-primary-600" />}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <BarChart
-                data={chartData}
-                dataKey="score"
-                bars={[
-                  { dataKey: "score", fill: "#4caf50", name: "Compatibility Score" }
-                ]}
-                title="Crop Compatibility Scores"
-                subtitle="Higher scores indicate better suitability for your conditions"
-              />
-              
-              <div className="glass-card p-6">
-                <h3 className="text-xl font-semibold mb-4">Detailed Analysis</h3>
-                
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-lg font-medium text-primary-700">Rice</h4>
-                    <p className="text-muted-foreground mt-1">
-                      Rice is highly compatible with your soil and climate conditions. With your current NPK levels and rainfall, you can expect good yields.
-                    </p>
-                    <div className="mt-3">
-                      <div className="text-sm font-medium">Optimal Growing Conditions:</div>
-                      <ul className="list-disc list-inside text-sm text-muted-foreground mt-1 space-y-1">
-                        <li>Temperature: 20-35°C</li>
-                        <li>Rainfall: 750-1000mm</li>
-                        <li>Soil pH: 5.5-6.5</li>
-                        <li>Growing season: 3-6 months</li>
-                      </ul>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-lg font-medium text-primary-700">Wheat</h4>
-                    <p className="text-muted-foreground mt-1">
-                      Wheat is also compatible with your conditions but may require additional potassium supplementation for optimal growth.
-                    </p>
-                    <div className="mt-3">
-                      <div className="text-sm font-medium">Optimal Growing Conditions:</div>
-                      <ul className="list-disc list-inside text-sm text-muted-foreground mt-1 space-y-1">
-                        <li>Temperature: 15-24°C</li>
-                        <li>Rainfall: 450-650mm</li>
-                        <li>Soil pH: 6.0-7.0</li>
-                        <li>Growing season: 4-5 months</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-    </PageLayout>
+      </main>
+    </div>
   );
-};
+}  
 
 export default CropRecommendation;

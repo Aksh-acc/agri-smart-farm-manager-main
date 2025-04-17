@@ -1,350 +1,166 @@
+import React, { useState } from "react";
+import axios from "axios";
+import { Loader2 } from "lucide-react"; // Optional loader icon
 
-import { useState } from 'react';
-import PageLayout from '@/components/layout/PageLayout';
-import HeroSection from '@/components/ui/hero-section';
-import SectionHeader from '@/components/ui/section-header';
-import DataCard from '@/components/ui/data-card';
-import { Button } from '@/components/ui/button';
-import { FlaskConical, Leaf, PieChart, Droplets } from 'lucide-react';
-import { toast } from 'sonner';
+const cropOptions = [ "Barley", "Cotton", "Ground Nuts", "Maize", "Millets", "Oil seeds",
+  "Paddy", "Pulses", "Sugarcane", "Tobacco", "Wheat",
+  "coffee", "kidneybeans", "orange", "pomegranate", "rice", "watermelon" ];
+const soilOptions = [ "Black", "Clayey", "Loamy", "Red", "Sandy" ];
+const fertilizerDescriptions: Record<string, string> = { 
+  "Urea": "A nitrogen-rich fertilizer used to promote leafy growth.",
+  "DAP": "Di-Ammonium Phosphate, excellent for root development and early growth.",
+  "MOP": "Muriate of Potash, provides potassium to improve disease resistance.",
+  "SSP": "Single Super Phosphate, good for phosphorus and sulfur supply.",
+  "Ammonium Sulphate": "Rich in nitrogen and sulfur, helps in overall growth.",
+  "Magnesium Sulphate": "Boosts chlorophyll production and helps in photosynthesis.",
+  "White Potash": "Potassium-based fertilizer to enhance water retention.",
+  "Hydrated Lime": "Helps to raise soil pH and reduce soil acidity.",
+  "Sulphur": "Improves nitrogen use efficiency and supports protein synthesis.",
+  "Ferrous Sulphate": "Provides iron, vital for chlorophyll formation.",
+  "Chilated Micronutrient": "Contains trace minerals like zinc, boron, etc.",
+  "10:26:26 NPK": "Balanced NPK fertilizer ideal for root development.",
+  "12:32:16 NPK": "High phosphorus fertilizer for flowering and fruiting.",
+  "13:32:26 NPK": "Promotes early growth and strong root systems.",
+  "18:46:00 NPK": "Phosphorus-heavy fertilizer for early stage support.",
+  "19:19:19 NPK": "Fully balanced for overall plant health.",
+  "20:20:20 NPK": "Universal use across crops, balanced nutrients.",
+  "50:26:26 NPK": "High potassium formula for fruiting stages."
+ };
 
-const FertilizerRecommendation = () => {
-  const [formData, setFormData] = useState({
-    nitrogen: '',
-    phosphorus: '',
-    potassium: '',
-    crop_type: '',
-    soil_type: '',
-    moisture: ''
-  });
-  
-  const [showResults, setShowResults] = useState(false);
-  
-  const cropOptions = [
-    "Rice", "Wheat", "Maize", "Cotton", "Sugarcane",
-    "Tomato", "Potato", "Onion", "Chili", "Soybean"
-  ];
-  
-  const soilOptions = [
-    "Clay", "Sandy", "Loamy", "Black", "Red", "Alluvial"
-  ];
-  
-  // Simulated result - would be calculated by a ML model in a real app
-  const fertilizerRecommendations = [
-    {
-      name: "NPK 10-26-26",
-      suitability: 92,
-      description: "Balanced fertilizer ideal for your crop's growth stage.",
-      dosage: "250 kg/ha",
-      applicationMethod: "Apply in bands 5-7 cm below and to the side of the seed.",
-      costRange: "$45-55 per 50kg bag",
-      benefits: [
-        "Promotes root development",
-        "Improves flowering and fruit setting",
-        "Enhances overall plant vigor"
-      ]
-    },
-    {
-      name: "Urea",
-      suitability: 85,
-      description: "High nitrogen fertilizer to promote vegetative growth.",
-      dosage: "150 kg/ha",
-      applicationMethod: "Top dressing during vegetative growth stage.",
-      costRange: "$30-40 per 50kg bag",
-      benefits: [
-        "Rapid nitrogen availability",
-        "Promotes leafy growth",
-        "Cost-effective nitrogen source"
-      ]
-    },
-    {
-      name: "DAP (18-46-0)",
-      suitability: 78,
-      description: "Phosphorus-rich fertilizer for seedling establishment.",
-      dosage: "125 kg/ha",
-      applicationMethod: "Broadcast and incorporate before planting.",
-      costRange: "$50-60 per 50kg bag",
-      benefits: [
-        "Supports early growth and rooting",
-        "Enhances energy transfer processes",
-        "Improves drought resistance"
-      ]
+const FertilizerRecommendation: React.FC = () => {
+  const [location, setLocation] = useState("");
+  const [N, setN] = useState("");
+  const [P, setP] = useState("");
+  const [K, setK] = useState("");
+  const [moisture, setMoisture] = useState("");
+  const [soilType, setSoilType] = useState("");
+  const [cropType, setCropType] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [recommendedFertilizer, setRecommendedFertilizer] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    try {
+      const weatherRes = await axios.get(
+        `https://weather-api167.p.rapidapi.com/api/weather/current`,
+        {
+          params: { place: `${location},IN`, units: "standard", lang: "en", mode: "json" },
+          headers: {
+            "x-rapidapi-host": "weather-api167.p.rapidapi.com",
+            "x-rapidapi-key": "145a14219bmsh3bf2721a56f82edp17e541jsn973514e1d06f",
+            Accept: "application/json"
+          }
+        }
+      );
+
+      const weatherData = (weatherRes.data as { main: { temp?: number; humidity?: number } })?.main ?? { temp: 25, humidity: 50 };
+      const temperature = weatherData.temp ?? 25;
+      const humidity = weatherData.humidity ?? 50;
+
+      const input = {
+        Soil_Type: soilType,
+        Crop_Type: cropType,
+        Nitrogen: Number(N),
+        Phosphorous: Number(P),
+        Potassium: Number(K),
+        Moisture: Number(moisture),
+        Humidity: humidity,
+        Temparature: temperature,
+      };
+
+      const response = await axios.post<{ recommended_fertilizer: string }>(
+        "http://localhost:8000/predict",
+        input
+      );
+
+      setRecommendedFertilizer(response.data.recommended_fertilizer);
+    } catch (err) {
+      console.error("❌ Error:", err);
+      alert("Failed to fetch fertilizer recommendation.");
     }
-  ];
-  
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate inputs
-    const requiredFields = Object.entries(formData);
-    const emptyFields = requiredFields.filter(([_, value]) => value === '');
-    
-    if (emptyFields.length > 0) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-    
-    // Process form data - in a real app, this would call an API or ML model
-    setTimeout(() => {
-      setShowResults(true);
-      toast.success('Analysis completed');
-      
-      // Scroll to results
-      const resultsSection = document.getElementById('results');
-      if (resultsSection) {
-        resultsSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 1000);
+    setIsLoading(false);
   };
 
   return (
-    <PageLayout>
-      <HeroSection
-        title="Fertilizer Recommendation"
-        subtitle="Get customized fertilizer recommendations based on your soil composition and crop type"
-        imageSrc="https://source.unsplash.com/photo-1469474968028-56623f02e42e"
-        imageAlt="Field with tractor spreading fertilizer"
-      />
-      
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <div className="glass-card p-6 md:p-8">
-            <SectionHeader 
-              title="Input Your Soil & Crop Details"
-              subtitle="Provide information about your soil characteristics and planned crop"
+    <div className="p-6 md:p-10 bg-gradient-to-br from-black via-gray-900 to-black text-white rounded-xl shadow-2xl max-w-4xl mx-auto mt-10">
+      <h1 className="text-3xl font-bold mb-6 text-green-400">🌾 Fertilizer Recommendation for Farmers</h1>
+
+      <div className="space-y-5">
+        <input
+          type="text"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          placeholder="Enter your location (e.g., Jaipur)"
+          className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white"
+        />
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[{ label: "Nitrogen (N)", val: N, set: setN },
+            { label: "Phosphorous (P)", val: P, set: setP },
+            { label: "Potassium (K)", val: K, set: setK },
+            { label: "Moisture %", val: moisture, set: setMoisture }
+          ].map(({ label, val, set }) => (
+            <input
+              key={label}
+              type="number"
+              value={val}
+              onChange={(e) => set(e.target.value)}
+              placeholder={label}
+              className="p-3 rounded-lg bg-gray-800 border border-gray-600 text-white"
             />
-            
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Soil NPK Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Soil NPK Levels</h3>
-                  
-                  <div>
-                    <label htmlFor="nitrogen" className="block text-sm font-medium mb-1">Nitrogen (mg/kg)</label>
-                    <input
-                      type="number"
-                      id="nitrogen"
-                      name="nitrogen"
-                      value={formData.nitrogen}
-                      onChange={handleInputChange}
-                      placeholder="e.g. 40"
-                      min="0"
-                      className="input-field w-full"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="phosphorus" className="block text-sm font-medium mb-1">Phosphorus (mg/kg)</label>
-                    <input
-                      type="number"
-                      id="phosphorus"
-                      name="phosphorus"
-                      value={formData.phosphorus}
-                      onChange={handleInputChange}
-                      placeholder="e.g. 50"
-                      min="0"
-                      className="input-field w-full"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="potassium" className="block text-sm font-medium mb-1">Potassium (mg/kg)</label>
-                    <input
-                      type="number"
-                      id="potassium"
-                      name="potassium"
-                      value={formData.potassium}
-                      onChange={handleInputChange}
-                      placeholder="e.g. 60"
-                      min="0"
-                      className="input-field w-full"
-                    />
-                  </div>
-                </div>
-                
-                {/* Crop and Soil Type Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Crop & Soil Details</h3>
-                  
-                  <div>
-                    <label htmlFor="crop_type" className="block text-sm font-medium mb-1">Crop Type</label>
-                    <select
-                      id="crop_type"
-                      name="crop_type"
-                      value={formData.crop_type}
-                      onChange={handleInputChange}
-                      className="input-field w-full"
-                    >
-                      <option value="">Select a crop</option>
-                      {cropOptions.map((crop) => (
-                        <option key={crop} value={crop}>{crop}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="soil_type" className="block text-sm font-medium mb-1">Soil Type</label>
-                    <select
-                      id="soil_type"
-                      name="soil_type"
-                      value={formData.soil_type}
-                      onChange={handleInputChange}
-                      className="input-field w-full"
-                    >
-                      <option value="">Select soil type</option>
-                      {soilOptions.map((soil) => (
-                        <option key={soil} value={soil}>{soil}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="moisture" className="block text-sm font-medium mb-1">Soil Moisture (%)</label>
-                    <input
-                      type="number"
-                      id="moisture"
-                      name="moisture"
-                      value={formData.moisture}
-                      onChange={handleInputChange}
-                      placeholder="e.g. 40"
-                      min="0"
-                      max="100"
-                      className="input-field w-full"
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-center mt-8">
-                <Button type="submit" className="bg-primary-600 hover:bg-primary-700 px-8">
-                  Get Recommendations
-                </Button>
-              </div>
-            </form>
-          </div>
+          ))}
         </div>
-      </section>
-      
-      {showResults && (
-        <section id="results" className="py-16 bg-muted/50">
-          <div className="container mx-auto px-4">
-            <SectionHeader
-              title="Your Fertilizer Recommendations"
-              subtitle={`Based on your ${formData.crop_type} crop and soil analysis, here are the recommended fertilizers`}
-              center
-            />
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <DataCard
-                title="Nitrogen Status"
-                value={Number(formData.nitrogen) < 30 ? "Low" : Number(formData.nitrogen) < 60 ? "Medium" : "High"}
-                description={`${formData.nitrogen} mg/kg`}
-                icon={<Leaf className="h-6 w-6 text-primary-600" />}
-              />
-              <DataCard
-                title="Phosphorus Status"
-                value={Number(formData.phosphorus) < 25 ? "Low" : Number(formData.phosphorus) < 50 ? "Medium" : "High"}
-                description={`${formData.phosphorus} mg/kg`}
-                icon={<PieChart className="h-6 w-6 text-accent-gold" />}
-              />
-              <DataCard
-                title="Potassium Status"
-                value={Number(formData.potassium) < 30 ? "Low" : Number(formData.potassium) < 60 ? "Medium" : "High"}
-                description={`${formData.potassium} mg/kg`}
-                icon={<Droplets className="h-6 w-6 text-accent-blue" />}
-              />
-            </div>
-            
-            <div className="space-y-8">
-              {fertilizerRecommendations.map((fertilizer, index) => (
-                <div key={index} className="glass-card p-6">
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <div className="md:w-1/4">
-                      <div className="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg flex flex-col items-center justify-center h-full">
-                        <FlaskConical className="h-10 w-10 text-primary-600 mb-2" />
-                        <h3 className="text-xl font-semibold text-center">{fertilizer.name}</h3>
-                        <div className="mt-2 text-center">
-                          <div className="text-2xl font-bold text-primary-600">{fertilizer.suitability}%</div>
-                          <div className="text-sm text-muted-foreground">Suitability</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="md:w-3/4">
-                      <div className="space-y-4">
-                        <p>{fertilizer.description}</p>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <h4 className="text-sm font-medium text-muted-foreground">Recommended Dosage</h4>
-                            <p className="font-medium">{fertilizer.dosage}</p>
-                          </div>
-                          
-                          <div>
-                            <h4 className="text-sm font-medium text-muted-foreground">Cost Range</h4>
-                            <p className="font-medium">{fertilizer.costRange}</p>
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <h4 className="text-sm font-medium text-muted-foreground">Application Method</h4>
-                          <p>{fertilizer.applicationMethod}</p>
-                        </div>
-                        
-                        <div>
-                          <h4 className="text-sm font-medium text-muted-foreground">Benefits</h4>
-                          <ul className="list-disc list-inside text-sm space-y-1 mt-1">
-                            {fertilizer.benefits.map((benefit, i) => (
-                              <li key={i}>{benefit}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="mt-8 glass-card p-6">
-              <h3 className="text-xl font-semibold mb-4">Additional Recommendations</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-                  <div className="mr-3 mt-1">
-                    <svg className="h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <p>Consider soil testing every 2-3 years to monitor nutrient levels and adjust fertilizer applications.</p>
-                </li>
-                <li className="flex items-start">
-                  <div className="mr-3 mt-1">
-                    <svg className="h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <p>Split nitrogen applications to improve efficiency and reduce losses - apply 40% at planting and 60% during peak growth stage.</p>
-                </li>
-                <li className="flex items-start">
-                  <div className="mr-3 mt-1">
-                    <svg className="h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <p>Consider adding organic matter to improve soil structure, water retention, and nutrient availability.</p>
-                </li>
-              </ul>
-            </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <select
+            value={soilType}
+            onChange={(e) => setSoilType(e.target.value)}
+            className="p-3 rounded-lg bg-gray-800 border border-gray-600 text-white"
+          >
+            <option value="">Select Soil Type</option>
+            {soilOptions.map((soil) => (
+              <option key={soil} value={soil}>{soil}</option>
+            ))}
+          </select>
+
+          <select
+            value={cropType}
+            onChange={(e) => setCropType(e.target.value)}
+            className="p-3 rounded-lg bg-gray-800 border border-gray-600 text-white"
+          >
+            <option value="">Select Crop Type</option>
+            {cropOptions.map((crop) => (
+              <option key={crop} value={crop}>{crop}</option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className="mt-4 w-full md:w-fit px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg flex items-center gap-2 justify-center transition"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="animate-spin h-5 w-5" />
+              Predicting...
+            </>
+          ) : (
+            <>🔍 Get Recommendation</>
+          )}
+        </button>
+
+        {recommendedFertilizer && (
+          <div className="mt-8 p-6 rounded-lg bg-green-950 border border-green-600 shadow-lg">
+            <h2 className="text-2xl font-bold text-green-400">✅ Recommended Fertilizer</h2>
+            <p className="text-2xl mt-2 text-green-300">{recommendedFertilizer}</p>
+            <p className="text-gray-300 mt-4 text-sm">
+              {fertilizerDescriptions[recommendedFertilizer] || "No description available."}
+            </p>
           </div>
-        </section>
-      )}
-    </PageLayout>
+        )}
+      </div>
+    </div>
   );
 };
 

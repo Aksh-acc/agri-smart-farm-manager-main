@@ -14,7 +14,7 @@ import ExpertConsultation from './ExpertConsultation';
 
 const Chatbot = () => {
   const { 
-    messages, 
+    messages, // Ensure messages is destructured from useChat context
     addMessage, 
     isChatOpen, 
     setChatOpen, 
@@ -55,14 +55,8 @@ const Chatbot = () => {
       }, 300);
     }
   }, [isChatOpen]);
-
-  const handleSendMessage = async () => {
-    if (inputValue.trim() === '') return;
     
-    // Add user message
-    addMessage('user', inputValue);
-    setInputValue('');
-    
+  useEffect(() => {
     // In a real implementation, you would call your BharatGPT or Corover.ai API here
     // For now, simulate a delayed response
     setTimeout(() => {
@@ -77,28 +71,51 @@ const Chatbot = () => {
       const responseText = responses[currentLanguage.code as keyof typeof responses] || responses.en;
       addMessage('assistant', responseText);
     }, 1000);
-  };
+  }, [currentLanguage]);
 
-  const handleEscalateToExpert = () => {
-    // Get the last user message or use a default
-    const lastUserMessage = messages
-      .filter(msg => msg.role === 'user')
-      .pop()?.content || "";
-    
-    setSelectedQuery(lastUserMessage);
-    setShowExpertConsultation(true);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
+  
+    const userMessage = inputValue.trim();
+    addMessage('user', userMessage);
+    setInputValue('');
+  
+    try {
+      const prompt = `You are an agriculture assistant. Reply in ${currentLanguage.name}. Here's the query:\n${userMessage}`;
+  
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error || 'Something went wrong');
+      }
+  
+      addMessage('assistant', data.reply || '🤖 No response received.');
+    } catch (err) {
+      console.error('Groq API error:', err);
+      addMessage('assistant', '❌ Failed to connect to assistant.');
     }
   };
+  
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      handleSendMessage();
+    }
+  };  
 
-  if (!isChatOpen) return null;
-
-  return (
+  if (typeof isChatOpen === 'undefined' || !isChatOpen) return null;
+  function handleEscalateToExpert(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+    event.preventDefault();
+    setShowExpertConsultation(true);
+    setSelectedQuery(inputValue.trim());
+    setInputValue('');
+  } return (
     <>
       <Card className="fixed bottom-24 right-6 z-50 w-80 sm:w-96 shadow-xl border-2 overflow-hidden flex flex-col max-h-[600px] h-[70vh]">
         {/* Chat header */}
@@ -272,3 +289,4 @@ const MessageSquareIcon = () => (
 );
 
 export default Chatbot;
+
